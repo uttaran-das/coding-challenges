@@ -1,0 +1,9 @@
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.button-container button {
+    width: 48%;
+}
