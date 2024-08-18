@@ -21,13 +21,21 @@ function App() {
     setNames(namesArray.join('\n'));
   };
 
+  const handleRemoveWinner = (winner) => {
+    const namesArray = names.split('\n').filter(name => name.trim() !== '' && name !== winner);
+    setNames(namesArray.join('\n'));
+  };
+
   const filteredNames = names.split('\n').filter(name => name.trim() !== '');
 
   return (
     <div className="App">
       <div className="container">
         <div className="wheel-container">
-          <NameWheel names={filteredNames} />
+          <NameWheel 
+            names={filteredNames}
+            onRemoveWinner={handleRemoveWinner}
+          />
         </div>
         <div className="input-container">
           <h1>Name List</h1>
