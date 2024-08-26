@@ -17,10 +17,8 @@ public class ChallengeHuffman {
         Map<Character, Integer> frequencyMap = characterFrequency(file);
 
         if(frequencyMap!=null) {
-            System.out.println("Character frequency in the file:");
-            for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
-                System.out.println(entry.getKey() + ": " + entry.getValue());
-            }
+            HuffmanNode huffmanTree = HuffmanCoding.buildHuffmanTree(frequencyMap);
+            Map<Character, String> huffmanCodes = new HashMap<>();
         }
     }
 
