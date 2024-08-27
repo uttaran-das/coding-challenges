@@ -18,7 +18,7 @@ public class ChallengeHuffman {
 
         if(frequencyMap!=null) {
             HuffmanNode huffmanTree = HuffmanCoding.buildHuffmanTree(frequencyMap);
-            Map<Character, String> huffmanCodes = new HashMap<>();
+            Map<Character, String> huffmanCodes = HuffmanCoding.getHuffmanCodePrefixTable(huffmanTree);
         }
     }
 

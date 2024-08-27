@@ -1,5 +1,6 @@
 package main;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
@@ -18,6 +19,22 @@ public class HuffmanCoding {
         }
 
         return pq.poll();
+    }
+
+    public static Map<Character, String> getHuffmanCodePrefixTable(HuffmanNode root) {
+        Map<Character, String> huffmanCodes = new HashMap<>();
+        getHuffmanCodePrefixTableHelper(root, "", huffmanCodes);
+        return huffmanCodes;
+    }
+
+    public static void getHuffmanCodePrefixTableHelper(HuffmanNode root, String code, Map<Character, String> huffmanCodes) {
+        if (root.isLeaf()) {
+            huffmanCodes.put(root.character, code);
+            return;
+        }
+
+        getHuffmanCodePrefixTableHelper(root.left, code + "0", huffmanCodes);
+        getHuffmanCodePrefixTableHelper(root.right, code + "1", huffmanCodes);
     }
 
     public static String getHuffmanCode(HuffmanNode root, char character) {
