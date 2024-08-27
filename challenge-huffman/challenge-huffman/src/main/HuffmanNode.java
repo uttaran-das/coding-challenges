@@ -1,9 +1,10 @@
 package main;
 
 public class HuffmanNode implements Comparable<HuffmanNode> {
-    char character;
-    int frequency;
-    HuffmanNode left, right;
+    public char character;
+    public int frequency;
+    public HuffmanNode left;
+    public HuffmanNode right;
 
     HuffmanNode(char character, int frequency) {
         this.character = character;
@@ -16,7 +17,7 @@ public class HuffmanNode implements Comparable<HuffmanNode> {
         this.right = right;
     }
 
-    boolean isLeaf() {
+    public boolean isLeaf() {
         return left == null && right == null;
     }
 

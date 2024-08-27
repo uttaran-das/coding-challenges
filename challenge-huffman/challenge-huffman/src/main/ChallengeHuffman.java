@@ -11,14 +11,27 @@ public class ChallengeHuffman {
             return;
         }
         
-        String filename = args[0];
-        File file = new File(filename);
+        String inputFilename = args[0], outputFilename = args[1];
+        File inputFile = new File(inputFilename), outputFile = new File(outputFilename);
 
-        Map<Character, Integer> frequencyMap = characterFrequency(file);
+        Map<Character, Integer> frequencyMap = characterFrequency(inputFile);
 
         if(frequencyMap!=null) {
             HuffmanNode huffmanTree = HuffmanCoding.buildHuffmanTree(frequencyMap);
             Map<Character, String> huffmanCodes = HuffmanCoding.getHuffmanCodePrefixTable(huffmanTree);
+            String serializedHuffmanTree = HuffmanSerializer.serializeTree(huffmanTree);
+            try {
+                outputFile.getParentFile().mkdirs();
+                outputFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace(); // I will add a better logging method like SLF4J here
+            }
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+                System.out.println(serializedHuffmanTree);
+                writer.write(serializedHuffmanTree);
+            } catch (IOException e) {
+                e.printStackTrace(); // I will add a better logging method like SLF4J here
+            }
         }
     }
 
