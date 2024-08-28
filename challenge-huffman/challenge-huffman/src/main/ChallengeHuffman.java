@@ -1,5 +1,8 @@
 package main;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +13,8 @@ public class ChallengeHuffman {
             System.out.println("Please provide a filename as a command-line argument.");
             return;
         }
+
+        final Logger logger = LoggerFactory.getLogger(ChallengeHuffman.class);
         
         String inputFilename = args[0], outputFilename = args[1];
         File inputFile = new File(inputFilename), outputFile = new File(outputFilename);
@@ -24,13 +29,14 @@ public class ChallengeHuffman {
                 outputFile.getParentFile().mkdirs();
                 outputFile.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace(); // I will add a better logging method like SLF4J here
+                logger.error("Error creating the file: {}", outputFilename, e);
             }
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-                System.out.println(serializedHuffmanTree);
+                logger.info("Writing content to file: {}", outputFilename);
                 writer.write(serializedHuffmanTree);
+                logger.info("Content written to file: {}", outputFilename);
             } catch (IOException e) {
-                e.printStackTrace(); // I will add a better logging method like SLF4J here
+                logger.error("Error writing to file: {}", outputFilename, e);
             }
         }
     }
