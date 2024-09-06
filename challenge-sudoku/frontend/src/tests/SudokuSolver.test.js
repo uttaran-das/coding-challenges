@@ -1,4 +1,4 @@
-const solveSudoku = require('../utils/SudokuSolver');
+import { solveSudoku } from '../utils/SudokuSolver';
 
 describe('solveSudoku', () => {
     it('should solve a valid Sudoku puzzle', () => {

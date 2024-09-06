@@ -4,7 +4,7 @@
  * @param {Array} grid 2D array of integers representing the Sudoku puzzle.
  * @returns {boolean} True if the puzzle is valid, or false if it is invalid.
  */
-function validateSudoku(grid) {
+export function validateSudoku(grid) {
 
     /**
      * Checks if a given array of numbers is valid, i.e. does not contain any duplicates or zeros.
@@ -35,5 +35,3 @@ function validateSudoku(grid) {
 
     return true;
 }
-
-module.exports = validateSudoku;

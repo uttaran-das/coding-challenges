@@ -1,5 +1,4 @@
-const validateSudoku = require('../utils/SudokuValidator');
-console.log(typeof(validateSudoku));
+import { validateSudoku } from "../utils/SudokuValidator";
 
 describe('validateSudoku', () => {
     it('should return true for a valid solution', () => {
