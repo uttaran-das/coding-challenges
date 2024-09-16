@@ -1,4 +1,4 @@
-use std::io::{self, Read, Write};
+use std::{env, fs::{self, File}, io::{self, Read, Write}, path::Path};
 use termios::Termios;
 
 enum Mode {
@@ -7,6 +7,25 @@ enum Mode {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        eprintln!("Usage: {} <filename>", args[0]);
+        return;
+    }
+
+    let filename = &args[1];
+    let mut lines: Vec<String> = vec![String::new(); 24]; // Assuming a standard terminal height of 24 lines
+
+    // Read the file contents into the editor
+    if Path::new(filename).exists() {
+        let contents = fs::read_to_string(filename).expect("Failed to read file");
+        for (i, line) in contents.lines().enumerate() {
+            if i < lines.len() {
+                lines[i] = line.to_string();
+            }
+        }
+    }
+
     let stdin = 0; // file descriptor for stdin
     let mut termios = Termios::from_fd(stdin).expect("Failed to get terminal settings");
 
@@ -78,6 +97,44 @@ fn main() {
                             '\x1b' => {
                                 mode = Mode::Editor;
                                 continue;
+                            }
+                            ':' => {
+                                // Handle control sequences
+                                let mut command = String::new();
+                                loop {
+                                    match io::stdin().read(&mut buffer) {
+                                        Ok(0) => break, // EOF
+                                        Ok(_) => {
+                                            let cmd_input = buffer[0] as char;
+                                            if cmd_input == '\n' {
+                                                break;
+                                            }
+                                            command.push(cmd_input);
+                                        }
+                                        Err(e) => {
+                                            eprintln!("Error reading from stdin: {}", e);
+                                            break;
+                                        }
+                                    }
+                                }
+                                match command.as_str() {
+                                    "w" => {
+                                        // Save the file
+                                        let mut file = File::create(filename).expect("Failed to create file");
+                                        for line in &lines {
+                                            writeln!(file, "{}", line).expect("Failed to write to file");
+                                        }
+                                    }
+                                    "wq" => {
+                                        // Save and quit
+                                        let mut file = File::create(filename).expect("Failed to create file");
+                                        for line in &lines {
+                                            writeln!(file, "{}", line).expect("Failed to write to file");
+                                        }
+                                        break;
+                                    }
+                                    _ => continue,
+                                }
                             }
                             'q' => break,
                             _ => continue,
