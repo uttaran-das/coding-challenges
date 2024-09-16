@@ -1,5 +1,4 @@
-use std::io::{self, Read};
-
+use std::io::{self, Read, Write};
 use termios::Termios;
 
 fn main() {
@@ -24,6 +23,21 @@ fn main() {
     // Applying the new terminal settings
     termios::tcsetattr(stdin, termios::TCSANOW, &termios).expect("Failed to set terminal attributes");
 
+    // Clear the screen
+    print!("\x1b[2J");
+    io::stdout().flush().expect("Failed to flush stdout");
+
+    // Draw a vertical line of characters down the left-hand side of the screen
+    let screen_height = 24; // Assuming a standard terminal height of 24 lines
+    for i in 0..screen_height {
+        print!("\x1b[{};1H~", i + 1);
+        io::stdout().flush().expect("Failed to flush stdout");
+    }
+
+    // Position the cursor at the top left
+    print!("\x1b[H");
+    io::stdout().flush().expect("Failed to flush stdout");
+
     let mut buffer = [0; 1];
     loop {
         match io::stdin().read(&mut buffer) {
@@ -40,6 +54,10 @@ fn main() {
             }
         }
     }
+
+    // Clear the screen and position the cursor at the top left before exiting
+    print!("\x1b[2J\x1b[H");
+    io::stdout().flush().expect("Failed to flush stdout");
 
     // Restoring original settings
     termios::tcsetattr(stdin, termios::TCSANOW, &original_termios).expect("Failed to restore terminal settings");
