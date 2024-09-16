@@ -38,15 +38,41 @@ fn main() {
     print!("\x1b[H");
     io::stdout().flush().expect("Failed to flush stdout");
 
+    let mut cursor_row = 1;
+    let mut cursor_col = 1;
+
     let mut buffer = [0; 1];
     loop {
         match io::stdin().read(&mut buffer) {
             Ok(0) => break, // EOF
             Ok(_) => {
                 let input = buffer[0] as char;
-                if input == 'q' {
-                    break;
+                match input {
+                    'h' => {
+                        if cursor_col > 1 {
+                            cursor_col -= 1;
+                        }
+                    }
+                    'j' => {
+                        if cursor_row < screen_height {
+                            cursor_row += 1;
+                        }
+                    }
+                    'k' => {
+                        if cursor_row > 1 {
+                            cursor_row -= 1;
+                        }
+                    }
+                    'l' => {
+                        cursor_col += 1;
+                    }
+                    'q' => break,
+                    _ => continue,
                 }
+
+                // Move the cursor to the new position
+                print!("\x1b[{};{}H", cursor_row, cursor_col);
+                io::stdout().flush().expect("Failed to flush stdout");
             }
             Err(e) => {
                 eprintln!("Error reading from stdin: {}", e);
