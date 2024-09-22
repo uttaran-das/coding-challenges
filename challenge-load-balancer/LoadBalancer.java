@@ -49,7 +49,7 @@ class ClientHandler implements Runnable {
             BufferedReader backendIn = new BufferedReader(new InputStreamReader(backendSocket.getInputStream()));
             StringBuilder responseBuilder = new StringBuilder();
             String responseLine;
-            while ((responseLine = backendIn.readLine()) != null && !responseLine.isEmpty()) {
+            while ((responseLine = backendIn.readLine()) != null) { // We can't check for empty line here, otherwise later part of \r\n\r\n will not be read
                 System.out.println(responseLine);
                 responseBuilder.append(responseLine).append("\r\n");
             }
