@@ -1,37 +1,95 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class LoadBalancer {
     private static final List<String> backendServers = new ArrayList<>();
+    private static final List<String> availableServers = new ArrayList<>();
     private static int currentServerIndex = 0;
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     static {
         backendServers.add("localhost:8080");
         backendServers.add("localhost:8081");
+        backendServers.add("localhost:8082");
+        availableServers.addAll(backendServers);
     }
 
     public static void main(String[] args) {
+        if (args.length < 2){
+            System.out.println("Usage: java LoadBalancer <healthCheckPeriod> <healthCheckURL>");
+            return;
+        }
+
+        int healthCheckPeriod = Integer.parseInt(args[0]);
+        String healthCheckURL = args[1];
+
         int port = 80;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Load balancer listening on port " + port + "...");
+            startHealthCheck(healthCheckPeriod, healthCheckURL);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 new Thread(new ClientHandler(clientSocket)).start();
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            scheduler.shutdown();
         }
     }
 
     static synchronized String getBackendServer() {
-        String backendServer = backendServers.get(currentServerIndex);
-        currentServerIndex = (currentServerIndex + 1) % backendServers.size();
+        if (availableServers.isEmpty()) {
+            throw new RuntimeException("No available backend servers");
+        }
+        currentServerIndex %= availableServers.size();
+        String backendServer = availableServers.get(currentServerIndex);
+        currentServerIndex++;
         return backendServer;
+    }
+
+    private static void startHealthCheck(int period, String healthCheckURL) {
+        scheduler.scheduleAtFixedRate(() -> {
+            for (String server : backendServers) {
+                if (!performHealthCheck(server, healthCheckURL)) {
+                    if (availableServers.contains(server)) {
+                        availableServers.remove(server);
+                        System.out.println("Backend server " + server + " is down. Marking it as unavailable.");
+                    }
+                } else {
+                    if(!availableServers.contains(server)) {
+                        availableServers.add(server);
+                        System.out.println("Backend server " + server + " is up. Marking it as available.");
+                    }
+                }
+            }
+        }, 0, period, TimeUnit.SECONDS);
+    }
+
+    private static boolean performHealthCheck(String server, String healthCheckURL) {
+        try {
+            String[] parts = server.split(":");
+            String host = parts[0];
+            int port = Integer.parseInt(parts[1]);
+            URL url = new URI("http", null, host, port, healthCheckURL, null, null).toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            int responseCode = connection.getResponseCode();
+            return responseCode == 200;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 
