@@ -3,8 +3,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoadBalancer {
+    private static final List<String> backendServers = new ArrayList<>();
+    private static int currentServerIndex = 0;
+
+    static {
+        backendServers.add("localhost:8080");
+        backendServers.add("localhost:8081");
+    }
+
     public static void main(String[] args) {
         int port = 80;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
@@ -16,6 +26,12 @@ public class LoadBalancer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    static synchronized String getBackendServer() {
+        String backendServer = backendServers.get(currentServerIndex);
+        currentServerIndex = (currentServerIndex + 1) % backendServers.size();
+        return backendServer;
     }
 }
 
@@ -39,8 +55,14 @@ class ClientHandler implements Runnable {
                 requestBuilder.append(requestLine).append("\r\n");
             }
 
+            // Get the backend server using round-robin algorithm
+            String backendServer = LoadBalancer.getBackendServer();
+            String[] backendServerParts = backendServer.split(":");
+            String backendHost = backendServerParts[0];
+            int backendPort = Integer.parseInt(backendServerParts[1]);
+
             // Forward the request to the backend server
-            Socket backendSocket = new Socket("localhost", 8080);
+            Socket backendSocket = new Socket(backendHost, backendPort);
             PrintWriter backendOut = new PrintWriter(backendSocket.getOutputStream(), true);
             backendOut.println(requestBuilder.toString());
             backendOut.flush();
