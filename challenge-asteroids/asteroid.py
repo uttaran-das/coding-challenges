@@ -5,7 +5,7 @@ class Asteroid(pygame.sprite.Sprite):
     def __init__(self, screen_width, screen_height, size=3, speed_x=None, speed_y=None):
         super().__init__()
         self.size = size
-        self.image = pygame.Surface((50 * size, 50 * size), pygame.SRCALPHA)
+        self.image = pygame.Surface((25 * size, 25 * size), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(0, screen_width)
         self.rect.y = random.randint(0, screen_height)
@@ -16,7 +16,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.pos_x = float(self.rect.x)
         self.pos_y = float(self.rect.y)
 
-        points = [(random.randint(0, 50 * size), random.randint(0, 50 * size)) for _ in range(10)]
+        points = [(random.randint(0, 25 * size), random.randint(0, 25 * size)) for _ in range(10)]
         pygame.draw.polygon(self.image, (255, 255, 255), points)
 
     def update(self):

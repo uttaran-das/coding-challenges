@@ -21,8 +21,12 @@ class Ship(pygame.sprite.Sprite):
         self.max_speed = 5  # Maximum speed
 
         self.bullets = pygame.sprite.Group()
+        self.lives = 3  # Number of lives
+        self.invincible = False  # Invincibility flag
+        self.invincible_timer = 0  # Timer for invincibility
+        self.invincible_duration = 3000  # 3 seconds of invincibility
 
-    def update(self, keys):
+    def update(self, keys, current_time):
         # Ship rotation
         if keys[pygame.K_LEFT]:
             self.angle += 5
@@ -73,6 +77,20 @@ class Ship(pygame.sprite.Sprite):
 
         # Update bullets
         self.bullets.update(self.screen_width, self.screen_height)
+
+        # Update invincibility timer
+        if self.invincible:
+            if current_time - self.invincible_timer > self.invincible_duration:
+                self.invincible = False
     
     def draw_bullets(self, screen):
         self.bullets.draw(screen)
+    
+    def lose_life(self, current_time):
+        if not self.invincible:
+            self.lives -= 1
+            self.invincible = True
+            self.invincible_timer = current_time
+            if self.lives <= 0:
+                return True  # Game over
+        return False

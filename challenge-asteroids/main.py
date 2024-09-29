@@ -37,8 +37,13 @@ ship = None
 score = 0
 high_scores = load_high_scores()
 
+# Difficulty settings
+difficulty_increase_interval = 10000  # Increase difficulty every 10 seconds
+last_difficulty_increase = 0
+
 running = True
 while running:
+    current_time = pygame.time.get_ticks()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -48,6 +53,7 @@ while running:
                 game_state = "playing"
                 asteroids.empty()
                 score = 0
+                last_difficulty_increase = current_time
                 for _ in range(10):
                     asteroids.add(Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT))
                 ship = Ship(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -80,7 +86,7 @@ while running:
     elif game_state == "playing":
         # Update and draw the ship and its bullets
         if ship:
-            ship.update(keys)
+            ship.update(keys, current_time)
             screen.blit(ship.image, ship.rect)
             ship.draw_bullets(screen)
         # Update and draw asteroids
@@ -104,13 +110,35 @@ while running:
                 elif asteroid.size == 1:
                     score += 30
         
+        # Check for collisions between ship and asteroids
+        if ship and pygame.sprite.spritecollideany(ship, asteroids):
+            if ship.lose_life(current_time):
+                game_state = "game_over"
+            else:
+                ship.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+                ship.speed = 0
+        
         # Display score
         score_text = score_font.render(f"Score: {score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
+        # Display lives
+        lives_text = score_font.render(f"Lives: {ship.lives}", True, WHITE)
+        screen.blit(lives_text, (SCREEN_WIDTH - 150, 10))
+
+        # Increase difficulty over time
+        if current_time - last_difficulty_increase > difficulty_increase_interval:
+            last_difficulty_increase = current_time
+            asteroids.add(Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT))
+    
+    elif game_state == "game_over":
+        game_over_text = font.render("Game Over", True, WHITE)
+        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(game_over_text, game_over_rect)
+
     pygame.display.flip()
 
-# Save high scores when the game ends
+# Update high scores
 high_scores = update_high_scores(score, high_scores)
 
 pygame.quit()
