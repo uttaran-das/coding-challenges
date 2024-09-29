@@ -1,6 +1,8 @@
 import pygame
 import math
 
+from bullet import Bullet
+
 class Ship(pygame.sprite.Sprite):
     def __init__(self, screen_width, screen_height):
         super().__init__()
@@ -17,6 +19,8 @@ class Ship(pygame.sprite.Sprite):
         self.acceleration = 0.05  # Acceleration rate
         self.deceleration = 0.01  # Deceleration rate
         self.max_speed = 5  # Maximum speed
+
+        self.bullets = pygame.sprite.Group()
 
     def update(self, keys):
         # Ship rotation
@@ -39,7 +43,7 @@ class Ship(pygame.sprite.Sprite):
 
         # Update ship position
         angle_rad = math.radians(self.angle)
-        
+
         # Update ship position based on angle and speed
         ship_dx = self.speed * math.sin(angle_rad)  # X-axis movement
         ship_dy = self.speed * math.cos(angle_rad)  # Y-axis movement
@@ -61,3 +65,14 @@ class Ship(pygame.sprite.Sprite):
         # Rotate the ship image
         self.image = pygame.transform.rotate(self.original_image, -self.angle)
         self.rect = self.image.get_rect(center=self.rect.center)
+
+        # Shooting
+        if keys[pygame.K_SPACE]:
+            bullet = Bullet(self.rect.centerx, self.rect.centery, self.angle)
+            self.bullets.add(bullet)
+
+        # Update bullets
+        self.bullets.update(self.screen_width, self.screen_height)
+    
+    def draw_bullets(self, screen):
+        self.bullets.draw(screen)

@@ -65,13 +65,23 @@ while running:
         screen.blit(button_bg, button_bg_rect)
         screen.blit(button_text, button_rect)
     elif game_state == "playing":
-        # Update and draw the ship
+        # Update and draw the ship and its bullets
         if ship:
             ship.update(keys)
             screen.blit(ship.image, ship.rect)
+            ship.draw_bullets(screen)
         # Update and draw asteroids
         asteroids.update()
         asteroids.draw(screen)
+
+        # Check for collisions between bullets and asteroids
+        for bullet in ship.bullets:
+            for asteroid in pygame.sprite.spritecollide(bullet, asteroids, False):
+                bullet.kill()
+                new_asteroids = asteroid.split()
+                if new_asteroids:
+                    asteroids.add(new_asteroids)
+                asteroid.kill()
 
     pygame.display.flip()
 
