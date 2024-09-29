@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from asteroid import Asteroid
+from high_scores import load_high_scores, update_high_scores
 from ship import Ship
 
 pygame.init()
@@ -34,6 +35,7 @@ game_state = "menu"
 asteroids = pygame.sprite.Group()
 ship = None
 score = 0
+high_scores = load_high_scores()
 
 running = True
 while running:
@@ -67,6 +69,14 @@ while running:
         screen.blit(title_text, title_rect)
         screen.blit(button_bg, button_bg_rect)
         screen.blit(button_text, button_rect)
+
+        # Display high scores
+        high_scores_text = score_font.render("High Scores:", True, WHITE)
+        screen.blit(high_scores_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 100))
+        for i, high_score in enumerate(high_scores):
+            score_text = score_font.render(f"{i + 1}. {high_score}", True, WHITE)
+            screen.blit(score_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 150 + i * 30))
+
     elif game_state == "playing":
         # Update and draw the ship and its bullets
         if ship:
@@ -99,6 +109,9 @@ while running:
         screen.blit(score_text, (10, 10))
 
     pygame.display.flip()
+
+# Save high scores when the game ends
+high_scores = update_high_scores(score, high_scores)
 
 pygame.quit()
 sys.exit()
