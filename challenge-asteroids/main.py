@@ -17,6 +17,7 @@ pygame.display.set_caption("Asteroids")
 
 font = pygame.font.Font(None, 74)
 button_font = pygame.font.Font(None, 48)
+score_font = pygame.font.Font(None, 36)
 
 title_text = font.render("Asteroids", True, WHITE)
 title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
@@ -32,6 +33,7 @@ button_bg_rect = button_bg.get_rect(center=button_rect.center)
 game_state = "menu"
 asteroids = pygame.sprite.Group()
 ship = None
+score = 0
 
 running = True
 while running:
@@ -43,6 +45,7 @@ while running:
             if game_state == "menu" and button_bg_rect.collidepoint(mouse_pos):
                 game_state = "playing"
                 asteroids.empty()
+                score = 0
                 for _ in range(10):
                     asteroids.add(Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT))
                 ship = Ship(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -82,6 +85,18 @@ while running:
                 if new_asteroids:
                     asteroids.add(new_asteroids)
                 asteroid.kill()
+
+                # Update score based on asteroid size
+                if asteroid.size == 3:
+                    score += 10
+                elif asteroid.size == 2:
+                    score += 20
+                elif asteroid.size == 1:
+                    score += 30
+        
+        # Display score
+        score_text = score_font.render(f"Score: {score}", True, WHITE)
+        screen.blit(score_text, (10, 10))
 
     pygame.display.flip()
 
