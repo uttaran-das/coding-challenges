@@ -2,6 +2,7 @@ import pygame
 import sys
 
 from asteroid import Asteroid
+from ship import Ship
 
 pygame.init()
 
@@ -27,14 +28,10 @@ button_bg = pygame.Surface((button_rect.width + 20, button_rect.height + 20))
 button_bg.fill(WHITE)
 button_bg_rect = button_bg.get_rect(center=button_rect.center)
 
-# Ship settings
-ship_image = pygame.Surface((40, 40), pygame.SRCALPHA)
-ship_rect = ship_image.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-pygame.draw.polygon(ship_image, WHITE, [(20, 0), (40, 40), (20, 30), (0, 40)])
-
 # Game state
 game_state = "menu"
 asteroids = pygame.sprite.Group()
+ship = None
 
 running = True
 while running:
@@ -48,6 +45,7 @@ while running:
                 asteroids.empty()
                 for _ in range(10):
                     asteroids.add(Asteroid(SCREEN_WIDTH, SCREEN_HEIGHT))
+                ship = Ship(SCREEN_WIDTH, SCREEN_HEIGHT)
         elif event.type == pygame.VIDEORESIZE:
             # Handling the window resizing
             SCREEN_WIDTH, SCREEN_HEIGHT = event.size
@@ -55,7 +53,10 @@ while running:
             title_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4)
             button_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
             button_bg_rect.center = button_rect.center
-            ship_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+            if ship:
+                ship.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        
+    keys = pygame.key.get_pressed()
 
     screen.fill(BLACK)
 
@@ -64,8 +65,10 @@ while running:
         screen.blit(button_bg, button_bg_rect)
         screen.blit(button_text, button_rect)
     elif game_state == "playing":
-        # Draw the ship
-        screen.blit(ship_image, ship_rect)
+        # Update and draw the ship
+        if ship:
+            ship.update(keys)
+            screen.blit(ship.image, ship.rect)
         # Update and draw asteroids
         asteroids.update()
         asteroids.draw(screen)
