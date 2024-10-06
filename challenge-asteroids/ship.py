@@ -29,9 +29,9 @@ class Ship(pygame.sprite.Sprite):
     def update(self, keys, current_time):
         # Ship rotation
         if keys[pygame.K_LEFT]:
-            self.angle += 5
+            self.angle -= 1
         if keys[pygame.K_RIGHT]:
-            self.angle -= 5
+            self.angle += 1
 
         # Ship acceleration
         if keys[pygame.K_UP]:
