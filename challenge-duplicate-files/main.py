@@ -147,6 +147,63 @@ def group_identical_files(files_by_md5):
     return identical_groups
 
 
+def display_identical_files(group):
+    """
+    Display the list of identical files with numbered options.
+    
+    :param group: List of identical file paths.
+    """
+    print("Identical Files:")
+    for i, file_path in enumerate(group, start=1):
+        print(f"{i}. {file_path}")
+
+
+def get_user_choice(group):
+    """
+    Prompt the user to enter the number of the file to keep.
+    
+    :param group: List of identical file paths.
+    :return: The user's choice (0 to skip, or the number of the file to keep).
+    """
+    while True:
+        try:
+            choice = int(input("Enter the number of the file to keep (0 to skip): "))
+            if 0 <= choice <= len(group):
+                return choice
+            else:
+                print("Invalid choice. Please enter a valid number.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+
+def delete_duplicate_files(group, choice):
+    """
+    Delete all files in the group except the one specified by the user.
+    
+    :param group: List of identical file paths.
+    :param choice: The number of the file to keep.
+    """
+    file_to_keep = group[choice - 1]
+    for file_path in group:
+        if file_path != file_to_keep:
+            os.remove(file_path)
+            print(f"Deleted: {file_path}")
+
+def prompt_user_to_keep_file(group):
+    """
+    Prompt the user to keep a particular file and delete the rest.
+    
+    :param group: List of identical file paths.
+    """
+    if len(group) < 2:
+        return
+    
+    display_identical_files(group)
+    choice = get_user_choice(group)
+    
+    if choice != 0:
+        delete_duplicate_files(group, choice)
+
 def main():
     # Create an argument parser
     parser = argparse.ArgumentParser(description="Recursively find potential duplicate files in a directory based on file size and MD5 hash.")
@@ -177,10 +234,9 @@ def main():
     # Group identical files together
     identical_groups = group_identical_files(files_by_md5)
 
-    # Print the groups of identical files
+    # Prompt the user to keep a particular file and delete the rest
     for group in identical_groups:
-        if len(group) > 1:
-            print(f"Identical Files: {group}")
+        prompt_user_to_keep_file(group)
 
 if __name__ == "__main__":
     main()
