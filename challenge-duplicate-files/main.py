@@ -2,12 +2,13 @@ import argparse
 import hashlib
 import os
 
-def find_potential_duplicates(directory, files_by_size):
+def find_potential_duplicates(directory, files_by_size, min_file_size):
     """
     Recursively finds potential duplicate files in the given directory based on file size.
     
     :param directory: The directory to scan.
     :param files_by_size: Dictionary to store the size and corresponding files
+    :param min_file_size: Minimum file size to consider.
     """
     try:
         # Iterate over all items in the directory
@@ -18,15 +19,17 @@ def find_potential_duplicates(directory, files_by_size):
                 # Get the size of the file
                 file_size = os.path.getsize(item_path)
 
-                # Check if this size is not recorded
-                if file_size not in files_by_size:
-                    files_by_size[file_size] = set()
+                # Check if the file size meets the minimum size requirement
+                if file_size >= min_file_size:
+                    # Check if this size is not recorded
+                    if file_size not in files_by_size:
+                        files_by_size[file_size] = set()
 
-                # Add the file in the file_size set
-                files_by_size[file_size].add(item_path)
+                    # Add the file in the file_size set
+                    files_by_size[file_size].add(item_path)
             elif os.path.isdir(item_path):
                 # If the item is a directory, recursively find potential duplicates
-                find_potential_duplicates(item_path, files_by_size)
+                find_potential_duplicates(item_path, files_by_size, min_file_size)
     except Exception as e:
         print(f"Error accessing directory {directory}: {e}")
 
@@ -150,6 +153,9 @@ def main():
     
     # Add the directory path argument
     parser.add_argument("directory", help="The directory to scan.")
+
+    # Add the optional minimum file size argument
+    parser.add_argument("--minsize", type=int, default=0, help="Minimum file size to consider (in bytes).")
     
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -163,7 +169,7 @@ def main():
     files_by_size = {}
 
     # Find potential duplicates
-    find_potential_duplicates(args.directory, files_by_size)
+    find_potential_duplicates(args.directory, files_by_size, args.minsize)
 
     # Find duplicate files based on MD5 hash
     files_by_md5 = find_duplicate_files(files_by_size)
