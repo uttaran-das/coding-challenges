@@ -74,6 +74,76 @@ def find_duplicate_files(files_by_size):
     return files_by_md5
 
 
+def are_files_identical(file1, file2, block_size=2**20):
+    """
+    Compare two files byte by byte to determine if they are identical.
+    
+    :param file1: Path to the first file.
+    :param file2: Path to the second file.
+    :param block_size: Size of the block to read at a time.
+    :return: True if files are identical, False otherwise.
+    """
+    try:
+        with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
+            while True:
+                block1 = f1.read(block_size)
+                block2 = f2.read(block_size)
+                if block1 != block2:
+                    return False
+                if not block1:
+                    return True
+    except Exception as e:
+        print(f"Error comparing files {file1} and {file2}: {e}")
+        return False
+
+
+def is_file_in_groups(file_path, identical_groups):
+    """
+    Check if a file is already in any of the groups.
+    
+    :param file_path: Path to the file to check.
+    :param identical_groups: List of lists where each sublist contains identical files.
+    :return: True if the file is in any group, False otherwise.
+    """
+    for group in identical_groups:
+        if file_path in group:
+            return True
+    return False
+
+
+def group_files(files_list, identical_groups):
+    """
+    Group files from a list into identical groups.
+    
+    :param files_list: List of file paths to group.
+    :param identical_groups: List of lists where each sublist contains identical files.
+    """
+    for i in range(len(files_list)):
+        if not is_file_in_groups(files_list[i], identical_groups):
+            new_group = [files_list[i]]
+            for j in range(i + 1, len(files_list)):
+                if are_files_identical(files_list[i], files_list[j]):
+                    new_group.append(files_list[j])
+            identical_groups.append(new_group)
+
+
+def group_identical_files(files_by_md5):
+    """
+    Group identical files together.
+    
+    :param files_by_md5: Dictionary containing files grouped by MD5 hash.
+    :return: List of lists where each sublist contains identical files.
+    """
+    identical_groups = []
+    
+    for md5, files in files_by_md5.items():
+        if len(files) > 1:
+            files_list = list(files)
+            group_files(files_list, identical_groups)
+    
+    return identical_groups
+
+
 def main():
     # Create an argument parser
     parser = argparse.ArgumentParser(description="Recursively find potential duplicate files in a directory based on file size and MD5 hash.")
@@ -98,9 +168,13 @@ def main():
     # Find duplicate files based on MD5 hash
     files_by_md5 = find_duplicate_files(files_by_size)
 
-    for md5, files in files_by_md5.items():
-        if len(files) > 1:
-            print(f"Duplicate Files (MD5: {md5}): {files}")
+    # Group identical files together
+    identical_groups = group_identical_files(files_by_md5)
+
+    # Print the groups of identical files
+    for group in identical_groups:
+        if len(group) > 1:
+            print(f"Identical Files: {group}")
 
 if __name__ == "__main__":
     main()
