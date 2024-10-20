@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import os
 
 def find_potential_duplicates(directory, files_by_size):
@@ -29,9 +30,53 @@ def find_potential_duplicates(directory, files_by_size):
     except Exception as e:
         print(f"Error accessing directory {directory}: {e}")
 
+
+def calculate_md5(file_path, block_size=2**20):
+    """
+    Calculate the MD5 hash of a file.
+    
+    :param file_path: The path to the file.
+    :param block_size: The size of the block to read at a time.
+    :return: The MD5 hash of the file.
+    """
+    md5 = hashlib.md5()
+    try:
+        with open(file_path, 'rb') as f:
+            while True:
+                data = f.read(block_size)
+                if not data:
+                    break
+                md5.update(data)
+        return md5.hexdigest()
+    except Exception as e:
+        print(f"Error reading file {file_path}: {e}")
+        return None
+
+
+def find_duplicate_files(files_by_size):
+    """
+    Find duplicate files based on MD5 hash.
+    
+    :param files_by_size: Dictionary containing files grouped by size.
+    :return: Dictionary containing files grouped by MD5 hash.
+    """
+    files_by_md5 = {}
+    
+    for size, files in files_by_size.items():
+        if len(files) > 1:
+            for file_path in files:
+                file_md5 = calculate_md5(file_path)
+                if file_md5:
+                    if file_md5 not in files_by_md5:
+                        files_by_md5[file_md5] = set()
+                    files_by_md5[file_md5].add(file_path)
+    
+    return files_by_md5
+
+
 def main():
     # Create an argument parser
-    parser = argparse.ArgumentParser(description="Recursively find potential duplicate files in a directory based on file size.")
+    parser = argparse.ArgumentParser(description="Recursively find potential duplicate files in a directory based on file size and MD5 hash.")
     
     # Add the directory path argument
     parser.add_argument("directory", help="The directory to scan.")
@@ -50,9 +95,12 @@ def main():
     # Find potential duplicates
     find_potential_duplicates(args.directory, files_by_size)
 
-    for key, value in files_by_size.items():
-        if len(value) > 1:
-            print(f"Potential Duplicate Files: {value}")
+    # Find duplicate files based on MD5 hash
+    files_by_md5 = find_duplicate_files(files_by_size)
+
+    for md5, files in files_by_md5.items():
+        if len(files) > 1:
+            print(f"Duplicate Files (MD5: {md5}): {files}")
 
 if __name__ == "__main__":
     main()
